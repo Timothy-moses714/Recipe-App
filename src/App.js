@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "./components/Header";
-import SearchBar from "./components/SearchBar";
 import RecipeCard from "./components/RecipeCard";
 import RecipeModal from "./components/RecipeModal";
 import Footer from "./components/Footer";
 
 export default function App() {
-  // all state hooks
+  // state hooks
   const [searchType, setSearchType] = useState("recipe");
   const [query, setQuery] = useState("");
   const [homeMeals, setHomeMeals] = useState([]);
@@ -41,9 +40,7 @@ export default function App() {
       try {
         const promises = AREAS.map((a) =>
           fetch(
-            `https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(
-              a
-            )}`
+            `https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(a)}`
           ).then((r) => r.json())
         );
         const results = await Promise.all(promises);
@@ -76,16 +73,10 @@ export default function App() {
   const apiURL = useMemo(() => {
     if (!query.trim()) return null;
     if (searchType === "recipe")
-      return `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(
-        query
-      )}`;
+      return `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query)}`;
     if (searchType === "ingredient")
-      return `https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(
-        query
-      )}`;
-    return `https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(
-      query
-    )}`;
+      return `https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(query)}`;
+    return `https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(query)}`;
   }, [query, searchType]);
 
   async function fetchMeals(url) {
@@ -106,14 +97,16 @@ export default function App() {
     }
   }
 
+  // manual search trigger
+  const handleManualSearch = () => fetchMeals(apiURL);
+
+  // run search whenever query/type changes
   useEffect(() => {
     const t = setTimeout(() => {
       fetchMeals(apiURL);
     }, 500);
     return () => clearTimeout(t);
   }, [apiURL]);
-
-  const handleManualSearch = () => fetchMeals(apiURL);
 
   // modal helpers
   async function openMeal(meal) {
@@ -161,13 +154,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header />
-
-      <SearchBar
-        onSearch={(term, type) => {
-          setQuery(term);
-          setSearchType(type);
-        }}
+      <Header
+        searchType={searchType}
+        setSearchType={setSearchType}
+        query={query}
+        setQuery={setQuery}
+        handleManualSearch={handleManualSearch}
+        loading={loading}
       />
 
       <main className="max-w-6xl mx-auto w-full px-4 py-8 flex-1">
